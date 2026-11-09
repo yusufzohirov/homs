@@ -1,14 +1,13 @@
-import Header from "./Companets/Header/header";
-import Section1 from "./Companets/section1/section";
+import React from 'react'
+import Crud from './components/crud'
 
 
 function App() {
   return (
-    <>
-      <Header />
-      <Section1 />
-      
-    </>
-  );
+    <div>
+      <Crud />  
+    </div>
+  )
 }
+
 export default App
