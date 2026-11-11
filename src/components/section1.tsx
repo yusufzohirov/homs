@@ -1,22 +1,32 @@
-import sect1  from"../assets/sect1.svg"
+import two from "../assets/2.svg";
+import tre from "../assets/3.svg";
+import or from "../assets/4.svg"
+function Section1() {
+  return (
+    <section className="flex items-center justify-center gap-40">
+      <div className="w-110">
+        <img src={two} alt="" /><br />
+        <p>Amet nunc diam orci duis ut sit diam arcu, nec. Eleifend proin massa tincidunt viverra lectus pulvinar. Nunc ipsum est pellentesque turpis ultricies.</p>
+        <br />
+        <div className="flex gap-5">
+          <button className="border w-40 p-1 rounded bg-[#EA580C] text-white">Sign Up Now</button>
+          <button className="text-[#326DEC]">View Demo</button>
+        </div><br />
+
+        <div>
+       <img src={tre} alt="" />
+        </div>
+      </div>
 
 
-function Section1(){
-    return(
-        <section className="flex p-10 justify-center gap-40 items-center">
-            <div className="w-100">
-            <p className="text-2xl">Hi !</p>
-            <h1 className="text-4xl">I m Muhamad Raul.a Front-End Developer</h1><br /><br />
-            <p>Front-End devel oper based in Bekasi, Indonesian
-I’am coding with a clean and beautiful problem
-solving in mind.</p>
-            </div>
-            <div>
-                <img src={sect1} alt="" />
-            </div>
+<div>
+    <img src={or} alt="" />
+</div>
 
-        </section>
-    )
+
+    </section>
+  );
 }
+
 
 export default Section1
