@@ -1,108 +1,182 @@
-import { useState } from "react"
+import { useState } from "react";
+import handleSelect from "./function";
 
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Checkbox,
+  IconButton,
+  Paper,
+  ThemeProvider,
+  createTheme,
+  CssBaseline,
+  listItemClasses,
+} from "@mui/material";
 
-function Crud(){
+function Crud() {
+  const [data, setData] = useState([
+    {
+      id: 1,
+      name: "Ali",
+      select: false,
+      age: 22,
+      img: "https://png.pngtree.com/png-clipart/20230927/original/pngtree-man-avatar-image-for-profile-png-image_13001882.png",
+    },
+    {
+      id: 2,
+      name: "Vali",
+      select: false,
+      age: 56,
+      img: "https://png.pngtree.com/png-clipart/20230927/original/pngtree-man-avatar-image-for-profile-png-image_13001882.png",
+    },
+    {
+      id: 3,
+      name: "Gani",
+      select: false,
+      age: 77,
+      img: "https://png.pngtree.com/png-clipart/20230927/original/pngtree-man-avatar-image-for-profile-png-image_13001882.png",
+    },
+    {
+      id: 4,
+      name: "Muhammad",
+      select: false,
+      age: 45,
+      img: "https://png.pngtree.com/png-clipart/20230927/original/pngtree-man-avatar-image-for-profile-png-image_13001882.png",
+    },
+  ]);
 
-  const [data,setDate]=useState([
-    {id:1,name:"Ali",age:"23",job:"student",city:"Dushanbe",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl1u8BZxjdouoNGANSBDEZ9Zlc1fzDyigOIvBmO8L9JA&s"},
-    {id:2,name:"Vali",age:"23",job:"student",city:"Dushanbe",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl1u8BZxjdouoNGANSBDEZ9Zlc1fzDyigOIvBmO8L9JA&s"},
-    {id:3,name:"Gali",age:"23",job:"student",city:"Dushanbe",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl1u8BZxjdouoNGANSBDEZ9Zlc1fzDyigOIvBmO8L9JA&s"},
-    {id:4,name:"sali",age:"23",job:"student",city:"Dushanbe",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl1u8BZxjdouoNGANSBDEZ9Zlc1fzDyigOIvBmO8L9JA&s"},
-  ])
+  const [Dioalog, setDialog] = useState(false);
+  const [elem, setElem] = useState({
+    id: null as Number|null,
+    img: "",
+    name: "",
+    age: "",
+    select: false,
+  });
 
-  const handleDelete=(id:number)=>{
-    setDate((prev)=> prev.filter((e)=> e.id!==id))
-  }
+  const handleDelete = (id: number) => {
+    setData((prev) => prev.filter((e) => e.id !== id));
+  };
 
-  const [Dialog,setDialog]=useState()
-  const [elem,setElem]=useState({id:null,name:"",age:"",city:"",img:"",job:"",})
+  const handlSubmit = (event: any) => {
+    event.preventDefault();
+    const newUser = {
+      id: elem.id ? elem.id : Date.now(),
+      img: event.target.img.value,
+      name: event.target.name.value,
+      age: event.target.age.value,
+      select: event.target.select.value == "true" ? true : false,
+    };
+    elem.id
+      ? setData((prev) => prev.map((e) => (e.id == elem.id ? newUser : e)))
+      : setData([...data, newUser]);
+    setDialog(false);
+  };
 
-  const [search, setSearch] = useState("")
-
- const filteredData = data.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()),
-  )
-
-  
-  
-  
-
-  const handlSabmit=(event:any)=>{
-       event.preventDefault()
-        const newObj={
-          id:elem.id?elem.id: Date.now(),
-          name:event.target.name.value,
-          age:event.target.age.value,
-          job:event.target.job.value,
-          city:event.target.city.value,
-          img:event.target.img.value,
-        }
-   elem.id?
-    setDate((prev)=> prev.map((e)=>( e.id===newObj.id?newObj:e)))
-   :setDate([...data,newObj])
-   setDialog(false)
-   setElem({id:null,name:"",age:"",city:"",img:"",job:"",})
-  }
-
-  return(
+  return (
     <>
-     {Dialog?(     
-        <form action="" onSubmit={handlSabmit}>
-          <input defaultValue={elem.img} name="img" type="text" placeholder="img..." />
-          <input  defaultValue={elem.name} name="name" type="text" placeholder="name..." />
-          <input  defaultValue={elem.age} name="age" type="text" placeholder="age..." />
-          <input  defaultValue={elem.city} name="city" type="text" placeholder="city..." />
-          <input  defaultValue={elem.job} name="job" type="text" placeholder="job..." />
-          <div>
-            <button type="submit">{elem.id?"edit save":"add save"}</button>
-            <button onClick={()=>{setDialog(false);setElem({id:null,name:"",age:"",city:"",img:"",job:"",})}}>Cancel</button>
-          </div>
-        </form>
-    ):null}
-       <div>
-        <button onClick={()=>setDialog(true)}>new ADD</button>
+      <Button variant="contained" onClick={() => setDialog(true)}>
+        New Add
+      </Button>
 
-    <input type="text" placeholder="Search name..." value={search} onChange={(e) => setSearch(e.target.value)} className="border border-gray-300 rounded-md px-4 py-4 mb-6 gap-4" />
+      {Dioalog ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            action=""
+            onSubmit={handlSubmit}
+          >
+            <h2 className="mb-5 text-2xl font-bold text-gray-800">New User</h2>
+            <div className="flex flex-col gap-4">
+              <input
+                defaultValue={elem.img}
+                type="text"
+                name="img"
+                placeholder="Enter img...."
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500"
+              />
+              <input
+                defaultValue={elem.name}
+                type="text"
+                name="name"
+                placeholder="Enter name...."
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500"
+              />
+              <input
+                defaultValue={elem.age}
+                type="text"
+                name="age"
+                placeholder="Enter age...."
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500"
+              />
+              <select
+                defaultChecked
+                name="select"
+                id=""
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none"
+              >
+                <option defaultValue={elem.img} value="false">
+                  Inactive
+                </option>
+                <option defaultValue={elem.img} value="true">
+                  Active
+                </option>
+              </select>
+              <div className="flex gap-10">
+                <Button type="submit" variant="contained">
+                  Save
+                </Button>
+                <Button variant="outlined" onClick={() => setDialog(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
+      <div className="flex flex-wrap gap-10 p-10">
+        {data.map((e) => {
+          return (
+            <Box className="w-75 border p-5 rounded-xl">
+              <img src={e.img} alt="" width={"80"} />
+              <Typography>{e.name}</Typography>
+              <Typography>{e.age}</Typography>
+              <Checkbox
+                checked={e.select}
+                onChange={() => setData(handleSelect(data, e.id))}
+              />
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => handleDelete(e.id)}
+                  variant="contained"
+                  color="error"
+                >
+                  Delete
+                </Button>
 
-       </div>
-         <table className="border-collapse border m-b-100">
-          <thead>
-            <tr className=" border">
-              <th className="border">Image</th>
-              <th  className="border">name</th>
-              <th  className="border">Age</th>
-              <th  className="border">Job</th>
-              <th  className="border">City</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-       {data.map((e)=>{
-         return(
-          <tbody>
-            <tr className="border">
-            <td  className="border"><img className="w-30" src={e.img} alt="" /></td>
-            <td  className="border">{e.name}</td>
-            <td  className="border">{e.age}</td>
-            <td  className="border">{e.job}</td>
-            <td  className="border">{e.city}</td>
-            <td className="flex gap-5">
-              <button onClick={()=>handleDelete(e.id)}>delete</button>
-              <button onClick={()=>{setElem(e);setDialog(true)}}>Edit</button>
-              <input type="checkbox" />
-            </td>
-            </tr>
-          </tbody>
-        )
-      })}
-
-        </table>
-
-
-   
-      </>
-)
-
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    setDialog(true);
+                    setElem(e);
+                  }}
+                >
+                  Edit
+                </Button>
+              </div>
+            </Box>
+          );
+        })}
+      </div>
+    </>
+  );
 }
-export default Crud
+
+export default Crud;
