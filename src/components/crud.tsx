@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, type FormEvent } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import {
   Select,
   SelectContent,
@@ -19,20 +19,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-function Crud() {
-    const api = "https://6ace4236f338359cf1c35796.mockapi.io/data";
-    const [search, setSearch] = useState("");
+type User = {
+  id: number | string;
+  name: string;
+  avatar: string;
+  age: string;
+  status: string;
+};
 
+function Crud() {
+  const api = "https://6ace4236f338359cf1c35796.mockapi.io/data";
+
+  const [data, setData] = useState<User[]>([]);
   const [dialog, setDialog] = useState(false);
-  const [data, setData] = useState<any[]>([]);
-  const [elem, setElem] = useState<any>({});
-  const [idx, setIdx] = useState<any>(null);
-  const [status, setStatus] = useState("true");
+  const [status, setStatus] = useState("");
+  const [elem, setEelem] = useState<User | null>(null);
+  const [idx, setIdx] = useState<number | string | null>(null);
 
   async function getData() {
     try {
-      const { data } = await axios.get(api);
-      setData(data);
+      const res = await axios.get(api);
+      setData(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -42,38 +49,7 @@ function Crud() {
     getData();
   }, []);
 
-  const handleSabmit = (event: any) => {
-    event.preventDefault();
-
-    const newUser = {
-      name: event.target.name.value,
-      age: event.target.age.value,
-      avatar: event.target.avatar.value,
-      status: status === "true",
-    };
-
-    if (idx === null) {
-      addUser(newUser);
-    } else {
-      editUser(idx, newUser);
-    }
-
-    setDialog(false);
-    setIdx(null);
-    setElem({});
-    setStatus("true");
-  };
-
-  async function addUser(newUser: any) {
-    try {
-      await axios.post(api, newUser);
-      getData();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function DeleteUser(id: string) {
+  async function deletData(id: number | string) {
     try {
       await axios.delete(`${api}/${id}`);
       getData();
@@ -82,10 +58,46 @@ function Crud() {
     }
   }
 
-  async function editUser(idx: string, newUser: any) {
+  const handlSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
+    const newUser = {
+      id: elem ? elem.id : Date.now(),
+      name: String(formData.get("name")),
+      avatar: String(formData.get("avatar")),
+      age: String(formData.get("age")),
+      status: status,
+    };
+
+    if (elem && idx !== null) {
+      editUser(newUser, idx);
+    } else {
+      addData(newUser);
+    }
+  };
+
+  async function addData(user: any) {
     try {
-      await axios.put(`${api}/${idx}`, newUser);
+      await axios.post(api, user);
       getData();
+      setDialog(false);
+      setEelem(null);
+      setStatus("");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function editUser(newuser: any, idx: number | string) {
+    try {
+      await axios.put(`${api}/${idx}`, newuser);
+      getData();
+      setDialog(false);
+      setEelem(null);
+      setIdx(null);
+      setStatus("");
     } catch (error) {
       console.error(error);
     }
@@ -93,18 +105,14 @@ function Crud() {
 
   return (
     <>
-      <div className="w-100 p-10 flex gap-10">
-        <Input
-          placeholder="Search name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex w-full items-center justify-center p-10 gap-10">
+        <Input placeholder="Searched...." />
 
         <Button
           onClick={() => {
-            setElem({});
+            setEelem(null);
             setIdx(null);
-            setStatus("true");
+            setStatus("");
             setDialog(true);
           }}
         >
@@ -115,22 +123,27 @@ function Crud() {
       <Dialog open={dialog} onOpenChange={setDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New User</DialogTitle>
+            <DialogTitle>{elem ? "Edit User" : "New Add"}</DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSabmit}>
+          <form onSubmit={handlSubmit}>
             <Input
-              defaultValue={elem.avatar}
               name="avatar"
-              placeholder="Image"
+              placeholder="Image..."
+              defaultValue={elem?.avatar || ""}
             />
 
-            <Input defaultValue={elem.name} name="name" placeholder="Name" />
+            <Input
+              name="name"
+              placeholder="Name..."
+              defaultValue={elem?.name || ""}
+            />
 
-            <Input defaultValue={elem.age} name="age" placeholder="Age" />
-
-            <br />
-            <br />
+            <Input
+              name="age"
+              placeholder="Age..."
+              defaultValue={elem?.age || ""}
+            />
 
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
@@ -138,55 +151,54 @@ function Crud() {
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="true">Active</SelectItem>
-                <SelectItem value="false">Inactive</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
 
-            <br />
+            <div>
+              <Button type="button" onClick={() => setDialog(false)}>
+                Cancel
+              </Button>
 
-            <Button type="submit">Save</Button>
+              <Button type="submit">Save</Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-wrap gap-10 p-20">
-        {data
-          .filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
-          .map((e) => {
-            return (
-              <Card key={e.id} className="w-100">
-                <CardContent>
-                  <img src={e.avatar} alt="" className="w-70 h-70" />
+      <div className="flex flex-wrap gap-10 p-10">
+        {data.map((e) => {
+          return (
+            <Card className="w-60" key={e.id}>
+              <CardContent>
+                <img className="w-40" src={e.avatar} alt="" />
 
-                  <h1>{e.name}</h1>
-                  <p>{e.age}</p>
+                <h1>{e.name}</h1>
+                <p>{e.age}</p>
 
-                  <Checkbox checked={e.status} disabled />
+                <Checkbox checked={e.status === "Active"} />
 
-                  <div>
-                    <Button
-                      onClick={() => DeleteUser(e.id)}
-                      variant="destructive"
-                    >
-                      Delete
-                    </Button>
+                <div>
+                  <Button onClick={() => deletData(e.id)}>
+                    Delete
+                  </Button>
 
-                    <Button
-                      onClick={() => {
-                        setDialog(true);
-                        setElem(e);
-                        setIdx(e.id);
-                        setStatus(String(e.status));
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <Button
+                    onClick={() => {
+                      setDialog(true);
+                      setEelem(e);
+                      setIdx(e.id);
+                      setStatus(e.status);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </>
   );
