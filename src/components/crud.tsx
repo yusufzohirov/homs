@@ -1,182 +1,157 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "./ui/card";
-import axios from "axios";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { Checkbox } from "./ui/checkbox";
+import  { useEffect, useState } from 'react'
+import axios from "axios"
+import { Button } from './ui/button'
+import { Card,CardContent } from './ui/card'
+
+import { Dialog,DialogContent } from './ui/dialog'
+import { Input } from './ui/input'
+import { Checkbox } from './ui/checkbox'
+
 
 function Crud() {
-  const api = "https://6ace4236f338359cf1c35796.mockapi.io/data";
-  const [data, setData] = useState([]);
-  const [dialog, setDialog] = useState(false);
-  const [search, setSearch] = useState("");
-  const [elem, setElem] = useState({});
-  const [idx, setIdx] = useState(null);
-  const [status, setStatus] = useState("All");
 
-  const handlSubmit = (event: any) => {
-    event.preventDefault();
-    const newUser = {
-      id: elem.id ? elem.id : Date.now(),
-      name: event.target.name.value,
-      avatar: event.target.img.value,
-      age: event.target.age.value,
-      status: status==="true",
-    };
 
-    if (idx !==null) {
-      editUser(idx, newUser);
-    } else {
-      addUser(newUser);
-    }
-  };
+  const [data,setData]=useState([])
+  const api="https://6ace4236f338359cf1c35796.mockapi.io/data"
+   const [dialog,setDialog]=useState(false)
+   const [elem,setElem]=useState(null)
+   const  [idx,setIdx]=useState(null)
+   const [serch,setSearch]=useState("")
+   const [selectserch,setselectserch]=useState("")
 
-  interface obj {
-    id: number;
-    name: string;
-    age: number;
-    avatar: string;
-  }
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  //  fuction
   async function getData() {
     try {
-      const { data } = await axios.get(api);
-      setData(data);
+      
+      const {data}=await axios.get(api)
+       setData(data)
+
     } catch (error) {
       console.error(error);
+      
+    }
+  }
+   
+  useEffect(()=>{
+    getData()
+  },[])
+
+
+  async function handlDelete(id:number) {
+    try {
+      await axios.delete(`${api}/${id}`)
+     getData()
+    } catch (error) {
+      console.error(error);
+      
     }
   }
 
-  async function deletData(id) {
+  async function addData(newUser) {
     try {
-      await axios.delete(`${api}/${id}`);
-      getData();
+      
+      await axios.post(api,newUser)
+      getData()
+      setDialog(false)
     } catch (error) {
       console.error(error);
+      
     }
   }
 
-  async function addUser(newuser) {
+  async function editUser(newUser,idx) {
     try {
-      await axios.post(api, newuser);
-      getData();
-      setDialog(false);
+      await axios.put(`${api}/${idx}`,newUser)
+      getData()
+      setDialog(false)
     } catch (error) {
       console.error(error);
+      
     }
   }
 
-  async function editUser(idx, newuser) {
-    try {
-      await axios.put(`${api}/${idx}`, newuser);
-      getData();
-      setDialog(false);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+
+
+const handlAdd=(event)=>{
+   event.preventDefault()
+   const newUser={
+    id: Date.now(),
+    avatar:event.target.img.value,
+    name:event.target.Name.value,
+    age:event.target.age.value,
+    status:event.target.selectStatus.value==="true"
+   }
+ 
+   if(elem){
+    editUser(newUser,idx)
+   }else{
+     addData(newUser)
+   }
+
+}
+ 
+
 
   return (
-    <>
-      <div className="flex w-120 gap-20 p-10">
-        <Input
-          placeholder="Searched..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+   <>
+  
+  <div className='flex w-100 gap-10 p-10'>
+    <Button onClick={()=>{setDialog(true);setIdx(null);setElem(null)}}>New Add</Button>
+    <Input placeholder='serched...' value={serch} onChange={(e)=>setSearch(e.target.value)}/>
 
-<select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="All">All</option>
-              <option value="false">Inactive</option>
-              <option value="true">Active</option>
-            </select>
+     <select value={selectserch} onChange={(e)=>setselectserch(e.target.value)} name='selectStatus'>
+          <option value="">All</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
 
-        <Button onClick={() => {setDialog(true);setIdx(null);setElem({});setStatus("All")}}>New</Button>
-      </div>
+  </div>
+  
+  <Dialog open={dialog} onOpenChange={setDialog}>
+    <DialogContent>
+      <form onSubmit={handlAdd}>
+        <Input defaultValue={elem?.avatar ||""}  name='img' placeholder='Image'/>
+        <Input defaultValue={elem?.name ||""}   name='Name' placeholder='Name'/>
+        <Input defaultValue={elem?.age || ""}  name='age' placeholder='Age'/>
+        <select name='selectStatus' >
+          <option value="">All</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        <div>
+          <Button type='submit'>Save</Button>
+          <Button onClick={()=>setDialog(false)}>Cancel</Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
 
-      <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent>
-          <form action="" onSubmit={handlSubmit}>
-            <Input
-              defaultValue={elem.avatar}
-              name="img"
-              placeholder="Image..."
-            />
-            <Input defaultValue={elem.name} name="name" placeholder="Name..." />
-            <Input defaultValue={elem.age} name="age" placeholder="Age..." />
 
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="All">All</option>
-              <option value="false">Inactive</option>
-              <option value="true">Active</option>
-            </select>
 
-            <div>
-              <Button type="submit">Save</Button>
-              <Button onClick={() => setDialog(false)}>Cancel</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
-      <div className="flex flex-wrap p-10 gap-10">
-        {data
-          .filter((e)=> e.name.toLowerCase().includes(search.toLowerCase()))
-          .filter((e)=> status==="All" || String(e.status)===status)
-          .map((e) => {
-            return (
-              <Card key={e.id}>
-                <CardContent>
-                  <img src={e.avatar} alt="" className="w-40" />
-                  <h1>{e.name}</h1>
-                  <p>{e.age}</p>
-                  <Checkbox
-                    checked={e.status}
-                    onCheckedChange={async () => {
-                      await axios.put(`${api}/${e.id}`, {
-                        ...e,
-                        status: !e.status,
-                      });
-                      getData();
-                    }}
-                  />
-                  <div>
-                    <Button onClick={() => deletData(e.id)}>Delete</Button>
-                    <Button
-                      onClick={() => {
-                        setDialog(true);
-                        setElem(e);
-                        setIdx(e.id);
-                        setStatus(String(e.status));
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-      </div>
-    </>
-  );
+
+   <div className='flex flex-wrap gap-10 p-10'>
+   {data
+   .filter((e)=> e.name.toLowerCase().includes(serch.toLowerCase()))
+   .filter((e)=> selectserch===""||String(e.status)===selectserch)
+   .map((e)=>{
+    return(
+      <Card key={e.id}>
+        <CardContent>
+    <img src={e.avatar}  alt="" className='w-40' />
+    <h1>{e.name}</h1>
+    <p>{e.age}</p>
+    <Checkbox checked={e.status} disabled/>
+    <div>
+    <Button onClick={()=> handlDelete(e.id)}>Delete</Button>
+    <Button onClick={()=>{setDialog(true);setElem(e);setIdx(e.id)}}>Edit</Button>
+    </div>
+        </CardContent>
+    </Card>
+  )
+   })}
+   </div>
+   </>
+  )
 }
 
-export default Crud;
+export default Crud
