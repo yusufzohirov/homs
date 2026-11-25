@@ -1,8 +1,10 @@
-export type User = {
-  id: string;
-  img: string;
+export type Todo = {
+  id: number;
   name: string;
-  age: number;
-  status: boolean;
-  
+  description: string;
+  isCompleted: boolean;
+  images: {
+    id: number;
+    imageName: string;
+  }[];
 };
