@@ -1,64 +1,33 @@
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import type { Todo } from "@/types";
-
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Dialog, DialogContent } from "./ui/dialog";
-import { TableDemo } from "../assets/TableCard";
 
-type TodosResponse = {
-  data: Todo[];
-  errors: unknown[];
-  statusCode: number;
-};
-
-type TodoFormValues = {
-  name: string;
-  description: string;
-  images?: FileList;
-};
+import { TableDemo, type Todo } from "../assets/TableCard";
 
 function RhfPage() {
   const api = "https://to-dos-api.softclub.tj";
 
   const [data, setData] = useState<Todo[]>([]);
-
   const [dialog, setDialog] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-
-
-   const {register,handleSubmit,reset}=useForm<TodoFormValues>({
-      defaultValues:{
-        name:"",
-        description:""
-      }
-   })
-
-
-
-
-
-
-
-
-
-
-  // GET
+  const { register, handleSubmit, reset } = useForm<{
+    name: string;
+    description: string;
+  }>();
 
   async function getData() {
     try {
-        
-        const res=await axios.get<TodosResponse>(`${api}/api/to-dos`)
-    
-        setData(res.data.data)
+      const res = await axios.get(`${api}/api/to-dos`);
+      setData(res.data.data);
     } catch (error) {
-        console.error(error);
-        
+      console.log(error);
     }
   }
 
@@ -66,41 +35,30 @@ function RhfPage() {
     getData();
   }, []);
 
-
-
-
-
-
-
-
-
-
-  // ADD
   function handleAdd() {
     setEditId(null);
-    reset();
+    reset({
+      name: "",
+      description: "",
+    });
     setDialog(true);
   }
 
-  // EDIT
-  function handleEdit(e: Todo) {
-    setEditId(e.id);
+  function handleEdit(todo: Todo) {
+    setEditId(todo.id);
 
     reset({
-      name: e.name,
-      description: e.description,
+      name: todo.name,
+      description: todo.description,
     });
 
     setDialog(true);
   }
 
-const filteredData = data.filter((e) =>
-  e.name.toLowerCase().includes(search.toLowerCase()) ||
-  e.description.toLowerCase().includes(search.toLowerCase())
-);
-
-  // POST + PUT
-  async function saveData(values: TodoFormValues) {
+  async function saveData(values: {
+    name: string;
+    description: string;
+  }) {
     try {
       if (editId !== null) {
         await axios.put(`${api}/api/to-dos`, {
@@ -114,45 +72,43 @@ const filteredData = data.filter((e) =>
         formData.append("Name", values.name);
         formData.append("Description", values.description);
 
-        Array.from(values.images || []).forEach((img) => {
-          formData.append("Images", img);
-        });
-
         await axios.post(`${api}/api/to-dos`, formData);
       }
 
-      getData();
-
+      await getData();
       setDialog(false);
       setEditId(null);
-
-      reset({
-        name: "",
-        description: "",
-        images: undefined,
-      });
+      reset();
     } catch (error) {
       console.log(error);
     }
   }
 
-  // DELETE
   async function deleteData(id: number) {
     try {
       await axios.delete(`${api}/api/to-dos`, {
         params: { id },
       });
 
-      getData();
+      await getData();
     } catch (error) {
       console.log(error);
     }
   }
 
+  const filteredData = data.filter(
+    (e) =>
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.description.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
-      <div>
-        <Button onClick={handleAdd}>New Add</Button>
+      <div style={{ display: "flex", gap: "8px" }}>
+        <Button type="button" onClick={handleAdd}>
+          New Add
+        </Button>
+
         <Input
           placeholder="Search..."
           value={search}
@@ -160,37 +116,25 @@ const filteredData = data.filter((e) =>
         />
       </div>
 
-      <Dialog
-        open={dialog}
-        onOpenChange={(open) => {
-          setDialog(open);
-
-          if (!open) {
-            setEditId(null);
-            reset({
-              name: "",
-              description: "",
-              images: undefined,
-            });
-          }
-        }}
-      >
+      <Dialog open={dialog} onOpenChange={setDialog}>
         <DialogContent>
-          <form onSubmit={handleSubmit(saveData)} className="space-y-3">
-            <Input placeholder="Name..." {...register("name")} />
+          <form
+            onSubmit={handleSubmit(saveData)}
+            style={{ display: "grid", gap: "12px" }}
+          >
+            <Input
+              placeholder="Name..."
+              {...register("name", { required: true })}
+            />
 
-            <Input placeholder="Description..." {...register("description")} />
+            <Input
+              placeholder="Description..."
+              {...register("description", { required: true })}
+            />
 
-            {editId === null && (
-              <Input
-                type="file"
-                accept="image/*"
-                multiple
-                {...register("images")}
-              />
-            )}
-
-            <Button type="submit">{editId === null ? "Save" : "Update"}</Button>
+            <Button type="submit">
+              {editId === null ? "Save" : "Update"}
+            </Button>
 
             <Button
               type="button"
@@ -199,7 +143,6 @@ const filteredData = data.filter((e) =>
                 setEditId(null);
                 reset();
               }}
-              variant="outline"
             >
               Cancel
             </Button>
@@ -207,11 +150,11 @@ const filteredData = data.filter((e) =>
         </DialogContent>
       </Dialog>
 
-     <TableDemo
-  data={filteredData}
-  onEdit={handleEdit}
-  onDelete={deleteData}
-/>
+      <TableDemo
+        data={filteredData}
+        onEdit={handleEdit}
+        onDelete={deleteData}
+      />
     </>
   );
 }
